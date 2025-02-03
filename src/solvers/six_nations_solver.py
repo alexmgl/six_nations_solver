@@ -7,7 +7,7 @@ from pyomo.environ import (
     NonNegativeReals, Binary, Integers, Reals, SolverFactory, value, maximize,
     NonNegativeIntegers, Param, Piecewise
 )
-from pyomo.opt import SolverStatus, TerminationCondition
+from pyomo.opt import SolverStatus, TerminationCondition, check_available_solvers
 from rich.console import Console
 from rich.table import Table
 
@@ -453,6 +453,15 @@ class SixNationsSolver:
         if self.model is None:
             raise ValueError("Model not built. Please build the model before solving.")
 
+        sl.info(f"Requested solver: {solver_name}")
+
+        # Check which solvers are available on the system
+        available_solvers = check_available_solvers()
+        if solver_name not in available_solvers:
+            sl.error(f"The requested solver '{solver_name}' is not installed or recognized.\n"
+                     f"Installed solvers are: {', '.join(available_solvers)}")
+            return None  # Or raise an exception, depending on your preference
+
         sl.info(f"Solving the model with {solver_name}...")
         start_time = time.time()
 
@@ -477,6 +486,7 @@ class SixNationsSolver:
         return result
 
     def print_result(self):
+
         """
         Print the final team selection (team, captain, substitutes) in a rich table format.
         """
@@ -593,4 +603,4 @@ if __name__ == '__main__':
     solver = SixNationsSolver()
     solver.load_test_data()  # Loads test data from CSV
     solver.build_model()  # Builds the Pyomo model
-    solver.solve()  # Solves and prints results
+    solver.solve(solver_name='cplex')  # Solves and prints results

@@ -178,6 +178,3 @@ Ensure the solver is installed on your system.
 - Ensure all dependencies are installed (`pip install -r requirements.txt`).
 - The solver requires **Pyomo** and a compatible solver (e.g., CPLEX, GLPK, Gurobi).
 - CSV input data should follow the format outlined above.
-
-This README provides a **detailed overview** of the Six Nations Solver, including **installation, data format, usage instructions, and output interpretation**. 🚀
-
