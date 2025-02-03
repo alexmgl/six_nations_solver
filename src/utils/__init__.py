@@ -1,0 +1,1 @@
+from src.utils.path_config import DATA_DIR
