@@ -32,6 +32,8 @@ The input data should be in a CSV or DataFrame format with the following columns
 | Value    | Player cost (budget impact)       |
 | Points   | Expected fantasy points           |
 
+Players positions should be in the format: ["PROP", "HOOKER", "SECOND-ROW", "BACK-ROW", "SCRUM-HALF", "FLY-HALF", "CENTRE", "BACK-THREE"]
+
 Example CSV (`example_2025_gw1.csv`):
 ```csv
 ID,Name,Club,Position,Value,Points
