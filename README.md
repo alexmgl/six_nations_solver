@@ -161,6 +161,8 @@ Upon solving, the solver prints a formatted table:
 The solver defaults to `cplex`, but you can use other solvers like:
 ```python
 solver.solve(solver_name='glpk')  # Open-source alternative
+solver.solve(solver_name='gurobi')  # High performance commercial
+# etc
 ```
 
 Ensure the solver is installed on your system.
