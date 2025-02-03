@@ -531,7 +531,7 @@ class SixNationsSolver:
             return f'{base_points * self.captain_multiplier} ({base_points} * {self.captain_multiplier})'
         return str(base_points)
 
-    def __print_dataframe_with_colors(self, df):
+    def __print_dataframe_with_colors(self, df, header_colour='bright_red', chip_colour='dark_olive_green1'):
         """
         Print the solution DataFrame using Rich with conditional coloring for
         captain/substitute rows.
@@ -539,7 +539,7 @@ class SixNationsSolver:
         print('\n')
         console = Console()
         table = Table(title=f"SIX NATIONS SOLVER ({self.model.objective()} points)", show_header=True,
-                      header_style="bold magenta")
+                      header_style=header_colour)
 
         # Create columns
         table.add_column("Index", justify="center", style="yellow", no_wrap=True)
@@ -553,7 +553,7 @@ class SixNationsSolver:
 
             # Color captain or substitute row in green
             if row["Captain"] == 1 or row["Substitute"] == 1:
-                table.add_row(*row_values, style="bold green")
+                table.add_row(*row_values, style=chip_colour)
             else:
                 table.add_row(*row_values, style="white")
 
