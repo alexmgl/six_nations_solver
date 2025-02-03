@@ -16,7 +16,7 @@
 ## 📥 Installation
 Ensure you have Python 3.8+ installed. Clone the repository and install dependencies:
 ```bash
-$ git clone https://github.com/yourusername/six_nations_solver.git
+$ git clone https://github.com/alexmgl/six_nations_solver.git
 $ cd six_nations_solver
 $ pip install -r requirements.txt
 ```
@@ -121,7 +121,7 @@ Ensure the solver is installed on your system.
 ## ❤️ Support the Project
 If you find this project useful, consider supporting it!
 <p align="center">
-  <a href="https://www.buymeacoffee.com/yourusername">
+  <a href="https://www.buymeacoffee.com/alexmgl">
     <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support-orange?logo=buy-me-a-coffee&logoColor=white" alt="Buy Me a Coffee">
   </a>
 </p>
