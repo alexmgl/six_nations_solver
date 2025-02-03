@@ -455,13 +455,6 @@ class SixNationsSolver:
 
         sl.info(f"Requested solver: {solver_name}")
 
-        # Check which solvers are available on the system
-        available_solvers = check_available_solvers()
-        if solver_name not in available_solvers:
-            sl.error(f"The requested solver '{solver_name}' is not installed or recognized.\n"
-                     f"Installed solvers are: {', '.join(available_solvers)}")
-            return None  # Or raise an exception, depending on your preference
-
         sl.info(f"Solving the model with {solver_name}...")
         start_time = time.time()
 
@@ -603,4 +596,4 @@ if __name__ == '__main__':
     solver = SixNationsSolver()
     solver.load_test_data()  # Loads test data from CSV
     solver.build_model()  # Builds the Pyomo model
-    solver.solve(solver_name='cplex')  # Solves and prints results
+    solver.solve()  # Solves and prints results
