@@ -173,14 +173,6 @@ Ensure the solver is installed on your system.
 * 📊 Graphical UI
 * 🌍 Web App Version
 
-## ❤️ Support the Project
-If you find this project useful, consider supporting it!
-<p align="center">
-  <a href="https://www.buymeacoffee.com/alexmgl">
-    <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support-orange?logo=buy-me-a-coffee&logoColor=white" alt="Buy Me a Coffee">
-  </a>
-</p>
-
 ---
 ### 📌 Notes
 - Ensure all dependencies are installed (`pip install -r requirements.txt`).

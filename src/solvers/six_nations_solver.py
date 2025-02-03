@@ -275,6 +275,10 @@ class SixNationsSolver:
         # Force the substitutes/super_sub to be from self.substitute_list if it is provided
         self.__c12_force_substitutes_from_list()
 
+        # Fix the captain and/or super sub if they are defined
+        self.__c13_fix_captain_if_defined()
+        self.__c14_fix_super_sub_if_defined()
+
     # --------------------------------------------------------------------------
     # Individual Constraint Rules
     # --------------------------------------------------------------------------
@@ -398,6 +402,42 @@ class SixNationsSolver:
                 # Force these variables to 0 if the player is not in the sub list
                 self.model.valid_substitute_list_constraint.add(self.model.substitutes[player_id] == 0)
                 self.model.valid_substitute_list_constraint.add(self.model.super_sub[player_id] == 0)
+
+    def __c13_fix_captain_if_defined(self):
+        """
+        If self.set_captain is defined, force that player to be captain (captain_var[player] == 1).
+        Because of the sum(captain_var) == 1 constraint, that player will be the only captain.
+        Also forces that player to be in the team.
+        """
+        if self.set_captain is not None:
+            # Make sure that the chosen captain is in the data
+            if self.set_captain not in self.players:
+                raise ValueError(f"Captain ID {self.set_captain} not found in loaded data.")
+
+            # Because the constraint sum(captain_var[i]) = 1 already exists,
+            # setting captain_var[set_captain] = 1 forces the solver to pick that player as captain.
+            # Also, the 'captain must be in the team' constraint ensures team_var[set_captain] == 1.
+            self.model.fixed_captain_constraint = Constraint(
+                expr=self.model.captain_var[self.set_captain] == 1
+            )
+
+    def __c14_fix_super_sub_if_defined(self):
+        """
+        If self.set_super_sub is defined, force that player to be a super sub (super_sub[player] == 1).
+        We still allow multiple super subs if max_substitutes > 1, but if only one is allowed,
+        this will fix exactly that one.
+        """
+        if self.set_super_sub is not None:
+            # Make sure that the chosen super sub is in the data
+            if self.set_super_sub not in self.players:
+                raise ValueError(f"Super sub ID {self.set_super_sub} not found in loaded data.")
+
+            # This constraint will force that player to have the super_sub variable = 1.
+            # The model already ensures super_sub[i] + team_var[i] <= 1, so the forced super sub
+            # won't appear in the starting team.
+            self.model.fixed_super_sub_constraint = Constraint(
+                expr=self.model.super_sub[self.set_super_sub] == 1
+            )
 
     # --------------------------------------------------------------------------
     # Solving and Reporting
