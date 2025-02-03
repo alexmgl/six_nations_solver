@@ -3,7 +3,7 @@
 🏉 **Six Nations Solver** is an optimisation tool for selecting the best fantasy team for the Six Nations Championship. It utilises **Mixed-Integer Linear Programming (MILP)** with **Pyomo** to maximise expected points while adhering to constraints such as budget, player positions, team balance, and special multipliers (captain, super-sub).
 
 ![Language](https://img.shields.io/badge/language-Python-blue)
-![Version](https://img.shields.io/badge/version-1.0.0-brightgreen)
+![Version](https://img.shields.io/badge/version-v1.0.0.beta-brightgreen)
 
 ## 🏆 Features
 - **Optimised Team Selection**: Selects the best 15-player squad plus substitutes while considering position and budget constraints.
