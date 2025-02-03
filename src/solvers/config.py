@@ -14,3 +14,12 @@ team_rule = (
     lambda min_players, max_players, num_players: min_players <= num_players <= max_players,
     "min_players <= num_players <= max_players"
 )
+
+team_to_emoji_map = {
+    "England":  "🌹",  # Red rose (symbol of England Rugby)
+    "Scotland": "🦄",  # Unicorn is the national animal
+    "Wales":    "🐉",  # Welsh dragon
+    "Ireland":  "☘️",  # Shamrock
+    "France":   "🐓",  # Gallic rooster (le coq gaulois)
+    "Italy":    "🤌"   # Iconic Italian "pinched fingers" gesture
+}
