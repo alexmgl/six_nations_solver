@@ -2,7 +2,7 @@ import os
 import logging
 
 
-def setup_logger(name=__name__, log_filename="six_nations_solver_log.log", level=logging.WARNING):
+def setup_logger(name=__name__, log_filename="six_nations_solver_log.log", level=logging.DEBUG):
     """
     Sets up a logger with a specific name and ensures the log file is always
     saved to the same absolute path, regardless of where it's run from.
