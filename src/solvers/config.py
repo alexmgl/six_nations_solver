@@ -23,3 +23,25 @@ team_to_emoji_map = {
     "France":   "🐓",  # Gallic rooster (le coq gaulois)
     "Italy":    "🤌"   # Iconic Italian "pinched fingers" gesture
 }
+
+points_map = {
+    'try_by_a_back': 10,
+    'try_by_a_forward': 15,
+    'try_assist': 4,
+    'try_conversion': 2,
+    'penalty_kick': 3,
+    'drop_goal': 5,
+    'defenders_beaten': 2,
+    'carried_metres': 1,  # pt per 10m made (e.g., 19m = 1 pt)
+    '50-22': 7,
+    'offload_to_hand': 2,
+    'attacking_scrum_win': 1,
+    'tackles': 1,
+    'breakdown_steals': 5,
+    'lineout_steals': 7,
+    'penalty_conceded': -1,
+    'official_player_of_the_match': 15,
+    'yellow_card': -5,
+    'red_card': -8
+}
+
