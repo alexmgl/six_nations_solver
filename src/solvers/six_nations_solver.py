@@ -37,6 +37,7 @@ class SixNationsSolver:
             self,
             starting_budget=230,
             max_team_size=15,
+            enforce_all_starting_players=True,  # enforces whether there must be 15 starting players on the pitch
             max_substitutes=1,
             max_same_team=4,
             captain_multiplier=2,
@@ -83,6 +84,7 @@ class SixNationsSolver:
         self.team_rule = team_rule
         self.starting_budget = starting_budget
         self.max_team_size = max_team_size
+        self.enforce_all_starting_players = enforce_all_starting_players  # enforces whether there must be 15 starting players on the pitch
         self.max_substitutes = max_substitutes
         self.max_same_team = max_same_team
         self.captain_multiplier = captain_multiplier
@@ -288,15 +290,20 @@ class SixNationsSolver:
         self.__c13_fix_captain_if_defined()
         self.__c14_fix_super_sub_if_defined()
 
+        # Remove any players in the substitutes_list from being selected in the starting team
+        self.model.remove_subs_from_team_constraint = Constraint(rule=self.__c16_remove_subs_from_starting_team)
 
     # --------------------------------------------------------------------------
     # Individual Constraint Rules
     # --------------------------------------------------------------------------
     def __c1_team_size(self, m):
         """
-        The total number of players in the starting team cannot exceed self.max_team_size.
+        Enforce the team size: if enforce_all_starting_players is True,
+        then exactly self.max_team_size players must be selected; otherwise,
+        the number of players cannot exceed self.max_team_size.
         """
-        return sum(m.team_var[i] for i in self.players) <= self.max_team_size
+        team_count = sum(m.team_var[i] for i in self.players)
+        return team_count == self.max_team_size if self.enforce_all_starting_players else team_count <= self.max_team_size
 
     def __c2_total_number_of_substitutes(self, m):
         """
@@ -469,6 +476,14 @@ class SixNationsSolver:
                 # Force these variables to 0 if the player is not in the sub list
                 self.model.valid_players_list_constraint.add(self.model.team_var[player_id] == 0)
 
+    def __c16_remove_subs_from_starting_team(self, m):
+        """
+        Ensure that players listed in substitutes_list are not selected in the starting team.
+        """
+        if self.substitutes_list is None:
+            return Constraint.Skip
+        return sum(m.team_var[i] for i in self.substitutes_list if i in self.players) == 0
+
     # --------------------------------------------------------------------------
     # Solving and Reporting
     # --------------------------------------------------------------------------
@@ -621,7 +636,6 @@ class SixNationsSolver:
 # Example usage
 # ------------------------------------------------------------------------------
 if __name__ == '__main__':
-
     sl.info("Running example usage of SixNationsSolver in standalone mode.")
     solver = SixNationsSolver()
     solver.load_test_data()  # Loads test data from CSV
