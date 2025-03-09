@@ -7,7 +7,6 @@ position_rules = {
     'SECOND-ROW': (lambda x: x <= 2, "x <= 2"),
     'PROP': (lambda x: x <= 2, "x <= 2"),
     'HOOKER': (lambda x: x <= 1, "x <= 1"),
-
 }
 
 team_rule = (
