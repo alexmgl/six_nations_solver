@@ -103,7 +103,7 @@ class SixNationsSolver:
         self.solver_results = None
 
         # Internally used structures for sets/dicts
-        self.players = None
+        self.all_players = None
         self.positions = None
         self.points_dict = None
         self.player_price_dict = None
@@ -177,7 +177,7 @@ class SixNationsSolver:
         """
         if self.data is not None:
             sl.debug("Setting internal model parameters from data.")
-            self.players = self.data['ID'].unique()
+            self.all_players = self.data['ID'].unique()
             self.positions = self.data['Position'].unique()
 
             # Create dictionaries for easy access in constraints/objective
@@ -229,11 +229,11 @@ class SixNationsSolver:
         """
         sl.debug("Adding model variables.")
 
-        self.model.team_var = Var(self.players, domain=Binary)  # all players in starting team
-        self.model.captain_var = Var(self.players, domain=Binary)  # a subset of starting team that earns a multiplier
+        self.model.team_var = Var(self.all_players, domain=Binary)  # all players in starting team
+        self.model.captain_var = Var(self.all_players, domain=Binary)  # a subset of starting team that earns a multiplier
 
-        self.model.substitutes = Var(self.players, domain=Binary)  # all substitutes
-        self.model.super_sub = Var(self.players, domain=Binary)  # a subset of substitutes that earns a multiplier
+        self.model.substitutes = Var(self.all_players, domain=Binary)  # all substitutes
+        self.model.super_sub = Var(self.all_players, domain=Binary)  # a subset of substitutes that earns a multiplier
 
     def __objective_rule(self, m):
         """
@@ -242,16 +242,16 @@ class SixNationsSolver:
          - Plus the additional captain multiplier points.
          - Plus the super sub multiplier points.
         """
-        normal_points = sum(m.team_var[i] * self.points_dict[i] for i in self.players)
+        normal_points = sum(m.team_var[i] * self.points_dict[i] for i in self.all_players)
 
         captain_points = sum(
             m.captain_var[i] * self.points_dict[i] * (self.captain_multiplier - 1)
-            for i in self.players
+            for i in self.all_players
         )
 
         super_sub_points = sum(
             m.super_sub[i] * self.points_dict[i] * self.super_sub_multiplier
-            for i in self.players
+            for i in self.all_players
         )
 
         return normal_points + captain_points + super_sub_points
@@ -265,12 +265,12 @@ class SixNationsSolver:
         # Core constraints
         self.model.team_size_constraint = Constraint(rule=self.__c1_team_size)
         self.model.substitutes_constraint = Constraint(rule=self.__c2_total_number_of_substitutes)
-        self.model.subs_mutually_exclusive_constraint = Constraint(self.players,
+        self.model.subs_mutually_exclusive_constraint = Constraint(self.all_players,
                                                                    rule=self.__c3_substitutes_cannot_be_in_team)
-        self.model.super_sub_constraint = Constraint(self.players, rule=self.__c4_super_sub_must_be_substitute)
+        self.model.super_sub_constraint = Constraint(self.all_players, rule=self.__c4_super_sub_must_be_substitute)
         self.model.budget_constraint = Constraint(rule=self.__c5_budget_rule)
         self.model.one_captain_constraint = Constraint(rule=self.__c6_one_captain_rule)
-        self.model.captain_must_be_in_team_constraint = Constraint(self.players, rule=self.__c7_captain_from_team_rule)
+        self.model.captain_must_be_in_team_constraint = Constraint(self.all_players, rule=self.__c7_captain_from_team_rule)
 
         # Team-based and position-based constraints
         self.__c8_limit_number_of_players_from_team()
@@ -284,7 +284,7 @@ class SixNationsSolver:
         self.__c12_force_substitutes_from_list()
 
         # Force the starting team to be from self.starting_players_list if it is provided
-        self.__c15_force_substitutes_from_list()
+        self.__c15_force_starting_players_from_list()
 
         # Fix the captain and/or super sub if they are defined
         self.__c13_fix_captain_if_defined()
@@ -302,14 +302,14 @@ class SixNationsSolver:
         then exactly self.max_team_size players must be selected; otherwise,
         the number of players cannot exceed self.max_team_size.
         """
-        team_count = sum(m.team_var[i] for i in self.players)
+        team_count = sum(m.team_var[i] for i in self.all_players)
         return team_count == self.max_team_size if self.enforce_all_starting_players else team_count <= self.max_team_size
 
     def __c2_total_number_of_substitutes(self, m):
         """
         The total number of subs cannot exceed self.max_substitutes.
         """
-        return sum(m.substitutes[i] for i in self.players) <= self.max_substitutes
+        return sum(m.substitutes[i] for i in self.all_players) <= self.max_substitutes
 
     def __c3_substitutes_cannot_be_in_team(self, m, i):
         """
@@ -329,8 +329,8 @@ class SixNationsSolver:
         The total cost of all selected players (team + super sub) cannot exceed the starting budget.
         """
         return (
-                sum(m.team_var[i] * self.player_price_dict[i] for i in self.players) +
-                sum(m.substitutes[i] * self.player_price_dict[i] for i in self.players)
+                sum(m.team_var[i] * self.player_price_dict[i] for i in self.all_players) +
+                sum(m.substitutes[i] * self.player_price_dict[i] for i in self.all_players)
                 <= self.starting_budget
         )
 
@@ -338,7 +338,7 @@ class SixNationsSolver:
         """
         Exactly one captain must be selected.
         """
-        return sum(m.captain_var[i] for i in self.players) == 1
+        return sum(m.captain_var[i] for i in self.all_players) == 1
 
     def __c7_captain_from_team_rule(self, m, i):
         """
@@ -370,7 +370,7 @@ class SixNationsSolver:
             }
         Each entry is a list containing a single callable that returns a constraint expression.
         """
-        idx = [i for i in self.players if self.player_pos_dict[i] == position]
+        idx = [i for i in self.all_players if self.player_pos_dict[i] == position]
         position_constraint_func = self.position_rules[position][0]
         total_in_position = sum(m.team_var[i] for i in idx)
         return position_constraint_func(total_in_position)
@@ -379,10 +379,10 @@ class SixNationsSolver:
         """
         Exclude players listed in self.team_must_exclude from both the starting team and the super sub list.
         """
-        sl.debug("Adding constraints to exclude specific players.")
+        sl.debug("Adding constraints to exclude specified players.")
         self.model.exclude_players_constraint = ConstraintList()
         for player_id in self.team_must_exclude:
-            if player_id in self.players:
+            if player_id in self.all_players:
                 self.model.exclude_players_constraint.add(
                     self.model.team_var[player_id] + self.model.substitutes[player_id] == 0
                 )
@@ -391,10 +391,10 @@ class SixNationsSolver:
         """
         Ensure that certain players (in self.team_must_include) are in the starting team.
         """
-        sl.debug("Adding constraints to include specific players.")
+        sl.debug("Adding constraints to include specified players.")
         self.model.include_players_constraint = ConstraintList()
         for player_id in self.team_must_include:
-            if player_id in self.players:
+            if player_id in self.all_players:
                 self.model.include_players_constraint.add(
                     self.model.team_var[player_id] == 1
                 )
@@ -407,7 +407,7 @@ class SixNationsSolver:
         """
         if self.substitutes_list is None:
             sl.debug('No substitutes specified.')
-            print(self.substitutes_list)
+
             return  # If no specific substitute list is provided, do nothing
 
         sl.debug("Adding constraint: Only players in 'substitutes_list' can be substitutes or super subs.")
@@ -415,7 +415,7 @@ class SixNationsSolver:
         self.model.valid_substitutes_list_constraint = ConstraintList()
         allowed_subs = set(self.substitutes_list)  # for fast membership checks
 
-        for player_id in self.players:
+        for player_id in self.all_players:
             if player_id not in allowed_subs:
                 # Force these variables to 0 if the player is not in the sub list
                 self.model.valid_substitutes_list_constraint.add(self.model.substitutes[player_id] == 0)
@@ -428,7 +428,7 @@ class SixNationsSolver:
         """
         if self.set_captain is not None:
             # Make sure that the chosen captain is in the data
-            if self.set_captain not in self.players:
+            if self.set_captain not in self.all_players:
                 raise ValueError(f"Captain ID {self.set_captain} not found in loaded data.")
 
             # Because the constraint sum(captain_var[i]) = 1 already exists,
@@ -446,7 +446,7 @@ class SixNationsSolver:
         """
         if self.set_super_sub is not None:
             # Make sure that the chosen super sub is in the data
-            if self.set_super_sub not in self.players:
+            if self.set_super_sub not in self.all_players:
                 raise ValueError(f"Super sub ID {self.set_super_sub} not found in loaded data.")
 
             # This constraint will force that player to have the super_sub variable = 1.
@@ -456,24 +456,22 @@ class SixNationsSolver:
                 expr=self.model.super_sub[self.set_super_sub] == 1
             )
 
-    def __c15_force_substitutes_from_list(self):
+    def __c15_force_starting_players_from_list(self):
         """
-        If self.starting_players_list is non-empty, ensure that any substitute or super sub
-        must be chosen from that list. That is, for any player not in self.substitutes_list,
-        substitutes[i] == 0 and super_sub[i] == 0.
+        If self.starting_players_list is non-empty, ensure that only players from this list can be selected in the starting team.
+        That is, for any player not in self.starting_players_list, team_var[player] == 0.
         """
-        if self.starting_players_list is None:
-            sl.debug('No starting players specified.')
-            return  # If no specific substitute list is provided, do nothing
+        # Only apply if a non-empty list is provided.
+        if not self.starting_players_list:
+            sl.debug('No starting players specified or list is empty.')
+            return
 
         sl.debug("Adding constraint: Only players in 'starting_players_list' can be in the starting team.")
-
         self.model.valid_players_list_constraint = ConstraintList()
-        allowed_players = set(self.starting_players_list)  # for fast membership checks
+        allowed_players = set(self.starting_players_list)  # fast membership lookup
 
-        for player_id in self.players:
+        for player_id in self.all_players:
             if player_id not in allowed_players:
-                # Force these variables to 0 if the player is not in the sub list
                 self.model.valid_players_list_constraint.add(self.model.team_var[player_id] == 0)
 
     def __c16_remove_subs_from_starting_team(self, m):
@@ -482,7 +480,7 @@ class SixNationsSolver:
         """
         if self.substitutes_list is None:
             return Constraint.Skip
-        return sum(m.team_var[i] for i in self.substitutes_list if i in self.players) == 0
+        return sum(m.team_var[i] for i in self.substitutes_list if i in self.all_players) == 0
 
     # --------------------------------------------------------------------------
     # Solving and Reporting
@@ -531,9 +529,9 @@ class SixNationsSolver:
         sl.debug("Preparing solution for display.")
 
         # Extract solution values
-        team_solution = {p: self.model.team_var[p].value for p in self.players}
-        captain_solution = {p: self.model.captain_var[p].value for p in self.players}
-        sub_solution = {p: self.model.super_sub[p].value for p in self.players}
+        team_solution = {p: self.model.team_var[p].value for p in self.all_players}
+        captain_solution = {p: self.model.captain_var[p].value for p in self.all_players}
+        sub_solution = {p: self.model.super_sub[p].value for p in self.all_players}
 
         # Convert to DataFrames
         df_team = pd.DataFrame.from_dict(team_solution, orient='index', columns=['Team'])
